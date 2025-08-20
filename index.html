@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Business Owner Command Centre</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin:0; background:#f5f6fa; }
+    header { background:#2c3e50; color:#fff; text-align:center; padding:1rem; }
+    nav { background:#ecf0f1; text-align:right; padding:.5rem 1rem; }
+    nav a { color:#2c3e50; font-weight:bold; text-decoration:none; }
+    .container { display:grid; grid-template-columns:repeat(auto-fit,minmax(400px,1fr)); gap:1rem; padding:1rem; }
+    .card { background:#fff; border-radius:12px; padding:1rem; box-shadow:0 2px 6px rgba(0,0,0,0.1); }
+    h2 { margin-top:0; border-bottom:1px solid #eee; padding-bottom:.4rem; color:#2c3e50; }
+    table { width:100%; border-collapse:collapse; }
+    th,td { border-bottom:1px solid #eee; padding:.4rem; text-align:left; font-size:.9rem; }
+    .alert { color:#c0392b; font-weight:bold; }
+  </style>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#2c3e50">
+  <link rel="icon" href="icon-192.png">
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('service-worker.js');
+    }
+  </script>
+</head>
+<body>
+  <header>📊 Business Owner Command Centre</header>
+  <nav><a href="upload.html">⚙️ Manage Sheets</a></nav>
+  <div class="container" id="dashboard"></div>
+
+  <script>
+    const sections = [
+      { key:"financials", title:"Financials & Cash Flow" },
+      { key:"inventory", title:"Inventory & Stock Levels" },
+      { key:"sales", title:"Sales & Customer Tracking" },
+      { key:"staff", title:"Staff Scheduling & Performance" },
+      { key:"marketing", title:"Marketing & Social Media" },
+      { key:"customerservice", title:"Customer Service & Feedback" },
+      { key:"kpis", title:"KPI Dashboard" }
+    ];
+
+    async function fetchSheetCSV(sheetId) {
+      const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv`;
+      const resp = await fetch(url);
+      return resp.text();
+    }
+
+    function csvToTable(csv) {
+      const rows = csv.trim().split("\n").map(r=>r.split(","));
+      let html = "<table>";
+      rows.forEach((row,i)=>{
+        html += "<tr>" + row.map(cell => `<${i===0?"th":"td"}>${cell}</${i===0?"th":"td"}>`).join("") + "</tr>";
+      });
+      html += "</table>";
+      return html;
+    }
+
+    async function loadDashboard() {
+      const container = document.getElementById("dashboard");
+      container.innerHTML = "";
+      for (let s of sections) {
+        const card = document.createElement("div");
+        card.className = "card";
+        card.innerHTML = `<h2>${s.title}</h2><p>Loading...</p>`;
+        container.appendChild(card);
+
+        const sheetId = localStorage.getItem(`sheet_${s.key}`);
+        if (sheetId) {
+          try {
+            const csv = await fetchSheetCSV(sheetId);
+            card.innerHTML = `<h2>${s.title}</h2>` + csvToTable(csv);
+          } catch (err) {
+            card.innerHTML = `<h2>${s.title}</h2><p class="alert">Error loading sheet</p>`;
+          }
+        } else {
+          card.innerHTML = `<h2>${s.title}</h2><p>No sheet linked yet. <a href="upload.html">Add one</a>.</p>`;
+        }
+      }
+    }
+
+    loadDashboard();
+    setInterval(loadDashboard, 5*60*1000);
+  </script>
+</body>
+</html>

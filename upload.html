@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Manage Google Sheets</title>
+  <style>
+    body { font-family: Arial, sans-serif; background:#f5f6fa; margin:0; padding:2rem; }
+    h1 { color:#2c3e50; }
+    .box { margin:1rem 0; padding:1rem; background:#fff; border-radius:8px; box-shadow:0 2px 6px rgba(0,0,0,0.1); }
+    label { display:block; font-weight:bold; margin-bottom:.3rem; }
+    input { width:100%; padding:.5rem; border:1px solid #ccc; border-radius:6px; }
+    button { margin-top:1rem; padding:.6rem 1rem; border:none; background:#27ae60; color:white; font-weight:bold; border-radius:6px; cursor:pointer; }
+    nav { margin-bottom:1rem; }
+    nav a { text-decoration:none; color:#2c3e50; font-weight:bold; }
+  </style>
+</head>
+<body>
+  <nav><a href="index.html">⬅️ Back to Dashboard</a></nav>
+  <h1>⚙️ Link Google Sheets</h1>
+  <p>Paste the <b>Google Sheet ID</b> for each section. (From the URL <code>.../d/SHEET_ID/edit</code>)</p>
+
+  <div id="form"></div>
+  <button onclick="saveAll()">Save All</button>
+
+  <script>
+    const sections = [
+      { key:"financials", title:"Financials & Cash Flow" },
+      { key:"inventory", title:"Inventory & Stock Levels" },
+      { key:"sales", title:"Sales & Customer Tracking" },
+      { key:"staff", title:"Staff Scheduling & Performance" },
+      { key:"marketing", title:"Marketing & Social Media" },
+      { key:"customerservice", title:"Customer Service & Feedback" },
+      { key:"kpis", title:"KPI Dashboard" }
+    ];
+
+    const form = document.getElementById("form");
+    sections.forEach(s=>{
+      const div = document.createElement("div");
+      div.className="box";
+      div.innerHTML = `
+        <label for="${s.key}">${s.title}</label>
+        <input id="${s.key}" type="text" value="${localStorage.getItem("sheet_"+s.key)||""}" placeholder="Paste Google Sheet ID here">
+      `;
+      form.appendChild(div);
+    });
+
+    function saveAll() {
+      sections.forEach(s=>{
+        const val = document.getElementById(s.key).value.trim();
+        if (val) localStorage.setItem("sheet_"+s.key, val);
+      });
+      alert("Saved! Return to Dashboard to see updates.");
+    }
+  </script>
+</body>
+</html>
